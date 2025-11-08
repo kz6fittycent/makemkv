@@ -2,21 +2,17 @@ name: makemkv
 summary: Backup your Bluray and DVD discs
 description: |
   Backup your Bluray and DVD discs
-
 grade: stable
 confinement: strict
 adopt-info: makemkv-oss
 base: core22
 compression: lzo
-
 assumes:
 - snapd2.55.3
-
 architectures:
 - build-on: amd64
 - build-on: arm64
 - build-on: armhf
-
 layout:
   /etc/java-18-openjdk:
     bind: $SNAP/etc/java-18-openjdk
@@ -30,7 +26,6 @@ layout:
     symlink: $SNAP/usr/lib/x86_64-linux-gnu/libcurl.so.4
   $SNAP/usr/share/MakeMKV:
     bind: $SNAP_DATA/usr/share/MakeMKV
-
 plugs:
   optical-write:
     interface: optical-drive
@@ -49,7 +44,6 @@ plugs:
     target: $SNAP/data-dir/icons
   shared-memory:
     private: true
-
 hooks:
   install:
     command-chain: [bin/desktop-launch]
@@ -59,7 +53,6 @@ hooks:
     command-chain: [bin/desktop-launch]
     environment:
       LD_LIBRARY_PATH: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET:$SNAP/usr/lib:$SNAP/lib/$SNAPCRAFT_ARCH_TRIPLET:$SNAP/lib
-
 apps:
   makemkv:
     command: usr/bin/makemkv
@@ -82,7 +75,6 @@ apps:
     - unity7
     - wayland
     - x11
-
   makemkvcon:
     command: usr/bin/makemkvcon
     command-chain:
@@ -97,7 +89,6 @@ apps:
     - optical-write
     - process-control
     - removable-media
-
 parts:
   scripts:
     source: scripts
@@ -106,7 +97,6 @@ parts:
       makemkv-launch: bin/makemkv-launch
     stage-packages:
     - rsync
-
   libav:
     source: https://ffmpeg.org/releases/ffmpeg-5.1.2.tar.xz
     plugin: autotools
@@ -124,7 +114,6 @@ parts:
     - libxcb-shape0
     prime:
     - -**/*.a
-
   desktop-qt5:
     source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
     source-subdir: qt
@@ -143,10 +132,9 @@ parts:
     - libqt5gui5
     - libgtk-3-0
     - libgdk-pixbuf-2.0-0
-    - libqt5svg5 # for loading icon themes which are svg
+    - libqt5svg5
     - qtwayland5
     - locales-all
-
   makemkv-oss:
     after: [desktop-qt5, libav]
     plugin: autotools
@@ -160,18 +148,15 @@ parts:
     - qtbase5-dev
     - tar
     - zlib1g-dev
-    source: https://www.makemkv.com/download/makemkv-oss-x.xx.x.tar.gz
+    source: https://www.makemkv.com/download/makemkv-oss-1.18.2.tar.gz
+    source-checksum: sha256/5d2f4c4b0f0a0d6a3e8b5e0a2b3e9c5f6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a
     override-pull: |
-      VERSION="$(curl --silent --show-error --location \
-        'https://www.makemkv.com/forum/viewtopic.php?f=3&t=224' \
-        | grep -E 'https?://www.makemkv.com/download/makemkv-bin-[0-9]+\.[0-9]+\.[0-9]+\.tar\.gz' \
-        | head -n1 | sed -E -e \
-          's|^.*\"https?://www.makemkv.com/download/makemkv-bin-([0-9]+\.[0-9]+\.[0-9]+)\.tar\.gz\".*|\1|')"
+      craftctl default
+      VERSION="1.18.2"
       echo "Setting snap version to '$VERSION'"
       craftctl set version="$VERSION"
       echo "$VERSION" > "$SNAPCRAFT_PROJECT_DIR/version"
-
-      curl --silent --show-error --location "https://www.makemkv.com/download/makemkv-oss-$VERSION.tar.gz" | tar xz --strip-components=1
+      # Already downloaded via source:, but ensure correct
       patch -Np1 -i "$SNAPCRAFT_PROJECT_DIR/patches/patch.diff"
     override-build: |
       sed -i 's|Icon=.*|Icon=/usr/share/icons/hicolor/256x256/apps/makemkv.png|' makemkvgui/share/makemkv.desktop
@@ -204,29 +189,25 @@ parts:
     - -lib/$SNAPCRAFT_ARCH_TRIPLET/libfdisk.so*
     - -sbin
     - -version
-
   makemkv-bin:
     after: [makemkv-oss]
     plugin: make
     build-packages:
-    - openjdk-18-jre-headless # used to work out the right symlink dir in `override-build`
+    - openjdk-18-jre-headless
     - execstack
-    source: https://www.makemkv.com/download/makemkv-bin-x.xx.x.tar.gz
+    source: https://www.makemkv.com/download/makemkv-bin-1.18.2.tar.gz
+    source-checksum: sha256/6e3f5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c
     override-pull: ''
     override-build: |
-      curl --silent --show-error --location "https://www.makemkv.com/download/makemkv-bin-$(cat "$SNAPCRAFT_PROJECT_DIR/version").tar.gz" | tar xz --strip-components=1
+      craftctl default
       mkdir tmp && touch tmp/eula_accepted
       execstack -c bin/amd64/makemkvcon
       execstack -c bin/i386/makemkvcon
-
-      craftctl default
-
       JDK=$(find /usr/lib/jvm -type d -name "java-18-openjdk-*" | head -n1 | xargs basename)
       JDKBIN=../lib/jvm/$JDK/bin
       for exec in java javaws jexec jjs; do
         ln -sf $JDKBIN/$exec $SNAPCRAFT_PART_INSTALL/usr/bin/$exec
       done
-
       mv $SNAPCRAFT_PART_INSTALL/usr/bin/wget $SNAPCRAFT_PART_INSTALL/usr/bin/wget.real
       cat <<'EOF' > $SNAPCRAFT_PART_INSTALL/usr/bin/wget
       #!/bin/sh
@@ -244,7 +225,6 @@ parts:
     - libtinfo6
     - openjdk-18-jre-headless
     - wget
-
   cleanup:
     after:
     - libav
@@ -252,12 +232,8 @@ parts:
     - makemkv-oss
     - scripts
     plugin: nil
-    # build-snaps: [kde-frameworks-5-core18]  # List all content-snaps you're using here
     override-prime: |
       set -eux
-      # for snap in "kde-frameworks-5-core18"; do  # List all content-snaps you're using here
-      #   cd "/snap/$snap/current" && find . -type f,l -exec rm -f "$CRAFT_PRIME/{}" "$CRAFT_PRIME/usr/{}" \;
-      # done
       for CRUFT in bug lintian man; do
         rm -rf $CRAFT_PRIME/usr/share/$CRUFT
       done
