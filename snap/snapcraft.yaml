@@ -153,7 +153,7 @@ parts:
       craftctl default
       VERSION="1.18.2"
       echo "Setting snap version to '$VERSION'"
-      craftctl set version="$VERSION"
+      craftctl set version "$VERSION"
       echo "$VERSION" > "$SNAPCRAFT_PROJECT_DIR/version"
       patch -Np1 -i "$SNAPCRAFT_PROJECT_DIR/patches/patch.diff"
     override-build: |
@@ -194,10 +194,9 @@ parts:
     - openjdk-18-jre-headless
     - execstack
     source: https://www.makemkv.com/download/makemkv-bin-1.18.2.tar.gz
-    override-pull: ''
-    override-build: |
+    override-pull: |
       craftctl default
-      mkdir tmp && touch tmp/eula_accepted
+      mkdir -p tmp && touch tmp/eula_accepted
       execstack -c bin/amd64/makemkvcon
       execstack -c bin/i386/makemkvcon
       JDK=$(find /usr/lib/jvm -type d -name "java-18-openjdk-*" | head -n1 | xargs basename)
@@ -211,6 +210,8 @@ parts:
       exec $SNAP/usr/bin/wget.real --no-config "$@"
       EOF
       chmod +x $SNAPCRAFT_PART_INSTALL/usr/bin/wget
+    override-build: |
+      craftctl default
     stage:
     - -usr/lib/jvm/java-18-openjdk-*/lib/security/cacerts
     - -usr/lib/jvm/java-18-openjdk-*/lib/security/blacklisted.certs
