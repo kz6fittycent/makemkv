@@ -85,9 +85,10 @@ parts:
       - tar
       - zlib1g-dev
       - libglx-mesa0
-    build-snaps:
-      - ffmpeg-2404
- 
+      - ffmpeg
+      - libavutil-dev
+      - pkg-config
+
     override-pull: |
       VERSION="$(curl --silent --show-error --location \
         'https://www.makemkv.com/forum/viewtopic.php?f=3&t=224' \
@@ -111,9 +112,8 @@ parts:
       - libexpat1
       - libglx-mesa0
       - libgles2-mesa-dev
-    stage-snaps:
-      - ffmpeg-2404
       - ffmpeg
+      - libavutil-dev
       
   makemkv-bin:
     after: [makemkv-oss]
@@ -121,9 +121,9 @@ parts:
     build-packages:
       - openjdk-21-jre-headless # used to work out the right symlink dir in `override-build`
       - execstack
-    build-snaps:
-      - ffmpeg-2404
       - ffmpeg
+      - libavutil-dev
+      - pkg-config
     source: https://www.makemkv.com/download/makemkv-bin-x.xx.x.tar.gz
     override-pull: ''
     override-build: |
@@ -155,6 +155,8 @@ parts:
       - libedit2
       - libjpeg-turbo8
       - libtinfo6
+      - libavutil58
+      - ffmpeg
       - openjdk-21-jre-headless
       - wget      
       
