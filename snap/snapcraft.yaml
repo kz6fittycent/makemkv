@@ -113,13 +113,17 @@ parts:
       - libgles2-mesa-dev
     stage-snaps:
       - ffmpeg-2404
+      - ffmpeg
       
   makemkv-bin:
     after: [makemkv-oss]
     plugin: make
     build-packages:
-    - openjdk-18-jre-headless # used to work out the right symlink dir in `override-build`
-    - execstack
+      - openjdk-21-jre-headless # used to work out the right symlink dir in `override-build`
+      - execstack
+    build-snaps:
+      - ffmpeg-2404
+      - ffmpeg
     source: https://www.makemkv.com/download/makemkv-bin-x.xx.x.tar.gz
     override-pull: ''
     override-build: |
@@ -130,7 +134,7 @@ parts:
 
       craftctl default
 
-      JDK=$(find /usr/lib/jvm -type d -name "java-18-openjdk-*" | head -n1 | xargs basename)
+      JDK=$(find /usr/lib/jvm -type d -name "java-21-openjdk-*" | head -n1 | xargs basename)
       JDKBIN=../lib/jvm/$JDK/bin
       for exec in java javaws jexec jjs; do
         ln -sf $JDKBIN/$exec $SNAPCRAFT_PART_INSTALL/usr/bin/$exec
@@ -143,15 +147,15 @@ parts:
       EOF
       chmod +x $SNAPCRAFT_PART_INSTALL/usr/bin/wget
     stage:
-      - -usr/lib/jvm/java-18-openjdk-*/lib/security/cacerts
-      - -usr/lib/jvm/java-18-openjdk-*/lib/security/blacklisted.certs
+      - -usr/lib/jvm/java-21-openjdk-*/lib/security/cacerts
+      - -usr/lib/jvm/java-21-openjdk-*/lib/security/blacklisted.certs
     organize:
       usr/share/MakeMKV: usr/share/MakeMKV.dist
     stage-packages:
       - libedit2
       - libjpeg-turbo8
       - libtinfo6
-      - openjdk-18-jre-headless
+      - openjdk-21-jre-headless
       - wget      
       
   cleanup:
