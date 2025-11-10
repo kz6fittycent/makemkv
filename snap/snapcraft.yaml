@@ -18,11 +18,11 @@ platforms:
 
 hooks:
   install:
-    command-chain: [bin/desktop-launch]
+    command-chain: [bin/makemkv-launch]
     environment:
       LD_LIBRARY_PATH: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET:$SNAP/usr/lib:$SNAP/lib/$SNAPCRAFT_ARCH_TRIPLET:$SNAP/lib
   post-refresh:
-    command-chain: [bin/desktop-launch]
+    command-chain: [bin/makemkv-launch]
     environment:
       LD_LIBRARY_PATH: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET:$SNAP/usr/lib:$SNAP/lib/$SNAPCRAFT_ARCH_TRIPLET:$SNAP/lib
 apps:
@@ -31,7 +31,6 @@ apps:
     extensions:
       - kde-neon
     command-chain:
-      - bin/desktop-launch
       - bin/makemkv-launch
     desktop: usr/share/applications/makemkv.desktop
     plugs:
@@ -159,10 +158,4 @@ parts:
       - ffmpeg
       - openjdk-21-jre-headless
       - wget      
-      
-  cleanup:
-    after:
-    - makemkv-bin
-    - makemkv-oss
-    - scripts
-    plugin: nil      
+   
