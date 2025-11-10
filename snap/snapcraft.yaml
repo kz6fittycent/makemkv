@@ -12,9 +12,6 @@ platforms:
   amd64:
     build-on: [amd64]
     build-for: [amd64]
-  arm64:
-    build-on: [arm64]
-    build-for: [arm64]
 
 hooks:
   install:
@@ -39,8 +36,6 @@ apps:
       - home
       - network
       - opengl
-      - optical-drive
-      - optical-write
       - process-control
       - removable-media
       - desktop
@@ -55,8 +50,6 @@ apps:
       - hardware-observe
       - home
       - network
-      - optical-drive
-      - optical-write
       - process-control
       - removable-media
 parts:
@@ -157,5 +150,6 @@ parts:
       - libavutil58
       - ffmpeg
       - openjdk-21-jre-headless
-      - wget      
+      - wget   
+      - libavcodec-dev   
    
