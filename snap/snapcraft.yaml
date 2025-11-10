@@ -70,13 +70,14 @@ parts:
       - rsync
 
   makemkv-oss:
+    source: https://www.makemkv.com/download/makemkv-oss-1.18.2.tar.gz
     plugin: autotools
     build-packages:
       - curl
       - libcurl4-openssl-dev
       - libexpat1-dev
-      - libegl1-mesa-dev
       - libgl1-mesa-dev
+      - libegl1-mesa-dev
       - libssl-dev
       - libc6-dev
       - libavcodec-dev
@@ -86,20 +87,24 @@ parts:
       - libglx-mesa0
     build-snaps:
       - ffmpeg-2404
-      
-    source: https://www.makemkv.com/download/makemkv-oss-1.18.2.tar.gz
+ 
     override-pull: |
-      craftctl default
-      VERSION="1.18.2"
+      VERSION="$(curl --silent --show-error --location \
+        'https://www.makemkv.com/forum/viewtopic.php?f=3&t=224' \
+        | grep -E 'https?://www.makemkv.com/download/makemkv-bin-[0-9]+\.[0-9]+\.[0-9]+\.tar\.gz' \
+        | head -n1 | sed -E -e \
+          's|^.*\"https?://www.makemkv.com/download/makemkv-bin-([0-9]+\.[0-9]+\.[0-9]+)\.tar\.gz\".*|\1|')"
       echo "Setting snap version to '$VERSION'"
       craftctl set version="$VERSION"
       echo "$VERSION" > "$SNAPCRAFT_PROJECT_DIR/version"
+
+      curl --silent --show-error --location "https://www.makemkv.com/download/makemkv-oss-$VERSION.tar.gz" | tar xz --strip-components=1
       patch -Np1 -i "$SNAPCRAFT_PROJECT_DIR/patches/patch.diff"
+      
     override-build: |
       sed -i 's|Icon=.*|Icon=/usr/share/icons/hicolor/256x256/apps/makemkv.png|' makemkvgui/share/makemkv.desktop
       craftctl default
-    autotools-configure-parameters:
-      - --prefix=/usr
+  
     stage-packages:
       - libcurl4
       - libegl1-mesa-dev
@@ -108,3 +113,50 @@ parts:
       - libgles2-mesa-dev
     stage-snaps:
       - ffmpeg-2404
+      
+  makemkv-bin:
+    after: [makemkv-oss]
+    plugin: make
+    build-packages:
+    - openjdk-18-jre-headless # used to work out the right symlink dir in `override-build`
+    - execstack
+    source: https://www.makemkv.com/download/makemkv-bin-x.xx.x.tar.gz
+    override-pull: ''
+    override-build: |
+      curl --silent --show-error --location "https://www.makemkv.com/download/makemkv-bin-$(cat "$SNAPCRAFT_PROJECT_DIR/version").tar.gz" | tar xz --strip-components=1
+      mkdir tmp && touch tmp/eula_accepted
+      execstack -c bin/amd64/makemkvcon
+      execstack -c bin/i386/makemkvcon
+
+      craftctl default
+
+      JDK=$(find /usr/lib/jvm -type d -name "java-18-openjdk-*" | head -n1 | xargs basename)
+      JDKBIN=../lib/jvm/$JDK/bin
+      for exec in java javaws jexec jjs; do
+        ln -sf $JDKBIN/$exec $SNAPCRAFT_PART_INSTALL/usr/bin/$exec
+      done
+
+      mv $SNAPCRAFT_PART_INSTALL/usr/bin/wget $SNAPCRAFT_PART_INSTALL/usr/bin/wget.real
+      cat <<'EOF' > $SNAPCRAFT_PART_INSTALL/usr/bin/wget
+      #!/bin/sh
+      exec $SNAP/usr/bin/wget.real --no-config "$@"
+      EOF
+      chmod +x $SNAPCRAFT_PART_INSTALL/usr/bin/wget
+    stage:
+      - -usr/lib/jvm/java-18-openjdk-*/lib/security/cacerts
+      - -usr/lib/jvm/java-18-openjdk-*/lib/security/blacklisted.certs
+    organize:
+      usr/share/MakeMKV: usr/share/MakeMKV.dist
+    stage-packages:
+      - libedit2
+      - libjpeg-turbo8
+      - libtinfo6
+      - openjdk-18-jre-headless
+      - wget      
+      
+  cleanup:
+    after:
+    - makemkv-bin
+    - makemkv-oss
+    - scripts
+    plugin: nil      
