@@ -5,45 +5,17 @@ description: |
 grade: stable
 confinement: strict
 adopt-info: makemkv-oss
-base: core22
+base: core24
 compression: lzo
-assumes:
-- snapd2.55.3
-architectures:
-- build-on: amd64
-- build-on: arm64
-- build-on: armhf
-layout:
-  /etc/java-18-openjdk:
-    bind: $SNAP/etc/java-18-openjdk
-  /usr/bin/java:
-    symlink: $SNAP/usr/lib/jvm/java-18-openjdk-amd64/bin/java
-  /usr/bin/wget:
-    bind-file: $SNAP/usr/bin/wget
-  /usr/lib/jvm:
-    bind: $SNAP/usr/lib/jvm
-  /usr/lib/x86_64-linux-gnu/libcurl.so.4:
-    symlink: $SNAP/usr/lib/x86_64-linux-gnu/libcurl.so.4
-  $SNAP/usr/share/MakeMKV:
-    bind: $SNAP_DATA/usr/share/MakeMKV
-plugs:
-  optical-write:
-    interface: optical-drive
-    write: true
-  gtk-3-themes:
-    default-provider: gtk-common-themes:gtk-3-themes
-    interface: content
-    target: $SNAP/data-dir/themes
-  sound-themes:
-    default-provider: gtk-common-themes:sound-themes
-    interface: content
-    target: $SNAP/data-dir/sounds
-  icon-themes:
-    default-provider: gtk-common-themes:icon-themes
-    interface: content
-    target: $SNAP/data-dir/icons
-  shared-memory:
-    private: true
+
+platforms:
+  amd64:
+    build-on: [amd64]
+    build-for: [amd64]
+  arm64:
+    build-on: [arm64]
+    build-for: [arm64]
+
 hooks:
   install:
     command-chain: [bin/desktop-launch]
@@ -56,39 +28,38 @@ hooks:
 apps:
   makemkv:
     command: usr/bin/makemkv
+    extensions:
+      - kde-neon
     command-chain:
-    - bin/desktop-launch
-    - bin/makemkv-launch
+      - bin/desktop-launch
+      - bin/makemkv-launch
     desktop: usr/share/applications/makemkv.desktop
     plugs:
-    - desktop
-    - desktop-legacy
-    - gsettings
-    - hardware-observe
-    - home
-    - network
-    - opengl
-    - optical-drive
-    - optical-write
-    - process-control
-    - removable-media
-    - unity7
-    - wayland
-    - x11
+      - gsettings
+      - hardware-observe
+      - home
+      - network
+      - opengl
+      - optical-drive
+      - optical-write
+      - process-control
+      - removable-media
+      - desktop
+
   makemkvcon:
     command: usr/bin/makemkvcon
     command-chain:
-    - bin/makemkv-launch
+      - bin/makemkv-launch
     environment:
       LD_LIBRARY_PATH: $SNAP/usr/lib:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET:$SNAP/lib:$SNAP/lib/$SNAPCRAFT_ARCH_TRIPLET
     plugs:
-    - hardware-observe
-    - home
-    - network
-    - optical-drive
-    - optical-write
-    - process-control
-    - removable-media
+      - hardware-observe
+      - home
+      - network
+      - optical-drive
+      - optical-write
+      - process-control
+      - removable-media
 parts:
   scripts:
     source: scripts
@@ -96,76 +67,44 @@ parts:
     organize:
       makemkv-launch: bin/makemkv-launch
     stage-packages:
-    - rsync
-  libav:
-    source: https://ffmpeg.org/releases/ffmpeg-5.1.2.tar.xz
-    plugin: autotools
-    build-packages:
-    - libfdk-aac-dev
-    - yasm
-    autotools-configure-parameters:
-    - --prefix=/usr
-    - --enable-static
-    - --disable-shared
-    - --enable-pic
-    - --enable-libfdk-aac
-    stage-packages:
-    - libfdk-aac2
-    - libxcb-shape0
-    prime:
-    - -**/*.a
-  desktop-qt5:
-    source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
-    source-subdir: qt
-    plugin: make
-    make-parameters: ["FLAVOR=qt5"]
-    build-packages:
-    - qtbase5-dev
-    - dpkg-dev
-    stage-packages:
-    - libxkbcommon0
-    - fonts-ubuntu
-    - dmz-cursor-theme
-    - light-themes
-    - adwaita-icon-theme
-    - shared-mime-info
-    - libqt5gui5
-    - libgtk-3-0
-    - libgdk-pixbuf-2.0-0
-    - libqt5svg5
-    - qtwayland5
-    - locales-all
+      - rsync
+
   makemkv-oss:
-    after: [desktop-qt5, libav]
     plugin: autotools
     build-packages:
-    - curl
-    - libcurl4-openssl-dev
-    - libexpat1-dev
-    - libegl1-mesa-dev
-    - libgl1-mesa-dev
-    - libssl-dev
-    - qtbase5-dev
-    - tar
-    - zlib1g-dev
+      - curl
+      - libcurl4-openssl-dev
+      - libexpat1-dev
+      - libegl1-mesa-dev
+      - libgl1-mesa-dev
+      - libssl-dev
+      - libc6-dev
+      - libavcodec-dev
+      - qtbase5-dev
+      - tar
+      - zlib1g-dev
+      - libglx-mesa0
+    build-snaps:
+      - ffmpeg-2404
+      
     source: https://www.makemkv.com/download/makemkv-oss-1.18.2.tar.gz
     override-pull: |
       craftctl default
       VERSION="1.18.2"
       echo "Setting snap version to '$VERSION'"
-      craftctl set version "$VERSION"
+      craftctl set version="$VERSION"
       echo "$VERSION" > "$SNAPCRAFT_PROJECT_DIR/version"
       patch -Np1 -i "$SNAPCRAFT_PROJECT_DIR/patches/patch.diff"
     override-build: |
       sed -i 's|Icon=.*|Icon=/usr/share/icons/hicolor/256x256/apps/makemkv.png|' makemkvgui/share/makemkv.desktop
       craftctl default
     autotools-configure-parameters:
-    - --prefix=/usr
+      - --prefix=/usr
     stage-packages:
-    - libcurl4
-    - libegl1-mesa
-    - libexpat1
-    - libgconf-2-4
-    - libgl1-mesa-glx
-    - libgles2-mesa
-    - lib
+      - libcurl4
+      - libegl1-mesa-dev
+      - libexpat1
+      - libglx-mesa0
+      - libgles2-mesa-dev
+    stage-snaps:
+      - ffmpeg-2404
