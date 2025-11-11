@@ -1,0 +1,12 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Makemkv
+GenericName=Makemkv
+Comment=Makemkv
+Exec=makemkv
+Icon=${SNAP}/meta/gui/makemkv.png
+Terminal=false
+Type=Application
+StartupNotify=false
+Categories=Application;
+Keywords=makemkv;

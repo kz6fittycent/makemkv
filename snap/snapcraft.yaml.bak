@@ -1,0 +1,155 @@
+name: makemkv
+summary: Backup your Bluray and DVD discs
+description: |
+  Backup your Bluray and DVD discs
+grade: stable
+confinement: strict
+adopt-info: makemkv-oss
+base: core24
+compression: lzo
+
+platforms:
+  amd64:
+    build-on: [amd64]
+    build-for: [amd64]
+
+hooks:
+  install:
+    command-chain: [bin/makemkv-launch]
+    environment:
+      LD_LIBRARY_PATH: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET:$SNAP/usr/lib:$SNAP/lib/$SNAPCRAFT_ARCH_TRIPLET:$SNAP/lib
+  post-refresh:
+    command-chain: [bin/makemkv-launch]
+    environment:
+      LD_LIBRARY_PATH: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET:$SNAP/usr/lib:$SNAP/lib/$SNAPCRAFT_ARCH_TRIPLET:$SNAP/lib
+apps:
+  makemkv:
+    command: usr/bin/makemkv
+    extensions:
+      - kde-neon
+    command-chain:
+      - bin/makemkv-launch
+    desktop: usr/share/applications/makemkv.desktop
+    plugs:
+      - gsettings
+      - hardware-observe
+      - home
+      - network
+      - opengl
+      - process-control
+      - removable-media
+      - desktop
+
+  makemkvcon:
+    command: usr/bin/makemkvcon
+    command-chain:
+      - bin/makemkv-launch
+    environment:
+      LD_LIBRARY_PATH: $SNAP/usr/lib:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET:$SNAP/lib:$SNAP/lib/$SNAPCRAFT_ARCH_TRIPLET
+    plugs:
+      - hardware-observe
+      - home
+      - network
+      - process-control
+      - removable-media
+parts:
+  scripts:
+    source: scripts
+    plugin: dump
+    organize:
+      makemkv-launch: bin/makemkv-launch
+    stage-packages:
+      - rsync
+
+  makemkv-oss:
+    source: https://www.makemkv.com/download/makemkv-oss-1.18.2.tar.gz
+    plugin: autotools
+    build-packages:
+      - curl
+      - libcurl4-openssl-dev
+      - libexpat1-dev
+      - libgl1-mesa-dev
+      - libegl1-mesa-dev
+      - libssl-dev
+      - libc6-dev
+      - libavcodec-dev
+      - qtbase5-dev
+      - tar
+      - zlib1g-dev
+      - libglx-mesa0
+      - ffmpeg
+      - libavutil-dev
+      - pkg-config
+
+    override-pull: |
+      VERSION="$(curl --silent --show-error --location \
+        'https://www.makemkv.com/forum/viewtopic.php?f=3&t=224' \
+        | grep -E 'https?://www.makemkv.com/download/makemkv-bin-[0-9]+\.[0-9]+\.[0-9]+\.tar\.gz' \
+        | head -n1 | sed -E -e \
+          's|^.*\"https?://www.makemkv.com/download/makemkv-bin-([0-9]+\.[0-9]+\.[0-9]+)\.tar\.gz\".*|\1|')"
+      echo "Setting snap version to '$VERSION'"
+      craftctl set version="$VERSION"
+      echo "$VERSION" > "$SNAPCRAFT_PROJECT_DIR/version"
+
+      curl --silent --show-error --location "https://www.makemkv.com/download/makemkv-oss-$VERSION.tar.gz" | tar xz --strip-components=1
+      patch -Np1 -i "$SNAPCRAFT_PROJECT_DIR/patches/patch.diff"
+      
+    override-build: |
+      sed -i 's|Icon=.*|Icon=/usr/share/icons/hicolor/256x256/apps/makemkv.png|' makemkvgui/share/makemkv.desktop
+      craftctl default
+  
+    stage-packages:
+      - libcurl4
+      - libegl1-mesa-dev
+      - libexpat1
+      - libglx-mesa0
+      - libgles2-mesa-dev
+      - ffmpeg
+      - libavutil-dev
+      
+  makemkv-bin:
+    after: [makemkv-oss]
+    plugin: make
+    build-packages:
+      - openjdk-21-jre-headless # used to work out the right symlink dir in `override-build`
+      - execstack
+      - ffmpeg
+      - libavutil-dev
+      - pkg-config
+    source: https://www.makemkv.com/download/makemkv-bin-x.xx.x.tar.gz
+    override-pull: ''
+    override-build: |
+      curl --silent --show-error --location "https://www.makemkv.com/download/makemkv-bin-$(cat "$SNAPCRAFT_PROJECT_DIR/version").tar.gz" | tar xz --strip-components=1
+      mkdir tmp && touch tmp/eula_accepted
+      execstack -c bin/amd64/makemkvcon
+      execstack -c bin/i386/makemkvcon
+
+      craftctl default
+
+      JDK=$(find /usr/lib/jvm -type d -name "java-21-openjdk-*" | head -n1 | xargs basename)
+      JDKBIN=../lib/jvm/$JDK/bin
+      for exec in java javaws jexec jjs; do
+        ln -sf $JDKBIN/$exec $SNAPCRAFT_PART_INSTALL/usr/bin/$exec
+      done
+
+      mv $SNAPCRAFT_PART_INSTALL/usr/bin/wget $SNAPCRAFT_PART_INSTALL/usr/bin/wget.real
+      cat <<'EOF' > $SNAPCRAFT_PART_INSTALL/usr/bin/wget
+      #!/bin/sh
+      exec $SNAP/usr/bin/wget.real --no-config "$@"
+      EOF
+      chmod +x $SNAPCRAFT_PART_INSTALL/usr/bin/wget
+    stage:
+      - -usr/lib/jvm/java-21-openjdk-*/lib/security/cacerts
+      - -usr/lib/jvm/java-21-openjdk-*/lib/security/blacklisted.certs
+    organize:
+      usr/share/MakeMKV: usr/share/MakeMKV.dist
+    stage-packages:
+      - libedit2
+      - libjpeg-turbo8
+      - libtinfo6
+      - libavutil58
+      - ffmpeg
+      - openjdk-21-jre-headless
+      - wget   
+      - libavcodec-dev   
+   
