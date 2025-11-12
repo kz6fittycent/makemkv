@@ -43,7 +43,10 @@ parts:
   makemkv-oss:
     source: https://www.makemkv.com/download/makemkv-oss-1.18.2.tar.gz
     source-type: tar
-    plugin: autotools
+    plugin: nil
+    override-build: |
+      ls -al
+      
     build-packages:
       - curl
       - libcurl4-openssl-dev
@@ -82,9 +85,12 @@ parts:
       
   makemkv-bin:
     after: [makemkv-oss]
-    plugin: make
+    plugin: nil
     source: https://www.makemkv.com/download/makemkv-bin-1.18.2.tar.gz
-    source-type: tar      
+    source-type: tar 
+    override-build:
+      ls -al
+           
     build-packages:
       - execstack
       - ffmpeg
