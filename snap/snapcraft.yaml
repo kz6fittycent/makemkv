@@ -16,7 +16,7 @@ platforms:
     
 apps:
   makemkv:
-    command: usr/bin/makemkv
+    command: makemkv
     extensions:
       - kde-neon
     plugs:
@@ -30,7 +30,7 @@ apps:
       - desktop
   
   makemkvcon:
-    command: usr/bin/makemkvcon 
+    command: makemkvcon 
     plugs:
       - hardware-observe
       - home
