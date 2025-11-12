@@ -43,31 +43,25 @@ parts:
     plugin: nil
     source: https://www.makemkv.com/download/makemkv-bin-1.18.2.tar.gz
     override-build: |      
-      mkdir -p INSTALL
-      cd INSTALL/
+      mkdir -p $CRAFT_PART_INSTALL/usr/bin/
       
       # oss
       wget https://www.makemkv.com/download/makemkv-oss-1.18.2.tar.gz
-            
       tar -xvzf makemkv-oss-1.18.2.tar.gz
-      ls -al
       cd makemkv-oss-1.18.2/
-      ls -al
       ./configure
       make
       make install
       
       # bin
       wget https://www.makemkv.com/download/makemkv-bin-1.18.2.tar.gz
-      
       tar -xvzf makemkv-bin-1.18.2.tar.gz
       cd makemkv-bin-1.18.2/
       mkdir tmp && touch tmp/eula_accepted
       make
       make install 
-           
-      ls -al $PWD
-      ls -al $CRAFT_PART_INSTALL
+
+      ls -al $CRAFT_PART_INSTALL/usr/bin
       
     override-pull: |
       VERSION="$(curl --silent --show-error --location \
