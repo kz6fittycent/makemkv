@@ -1,5 +1,6 @@
 name: makemkv
 summary: Backup your Bluray and DVD discs
+title: MakeMKV
 description: |
   Backup your Bluray and DVD discs
 grade: stable
@@ -8,6 +9,10 @@ adopt-info: makemkv-bin
 base: core24
 compression: lzo
 icon: snap/gui/makemkv.png
+website: https://www.makemkv.com/
+source-code: https://github.com/diddlesnaps/makemkv
+issues: https://github.com/diddlesnaps/makemkv/issues
+contact: https://github.com/diddlesnaps/makemkv
 
 platforms:
   amd64:
