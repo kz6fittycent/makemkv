@@ -4,7 +4,7 @@ description: |
   Backup your Bluray and DVD discs
 grade: stable
 confinement: strict
-adopt-info: makemkv-oss
+adopt-info: makemkv-bin
 base: core24
 compression: lzo
 icon: snap/gui/makemkv.png
@@ -19,7 +19,6 @@ apps:
     command: usr/bin/makemkv
     extensions:
       - kde-neon
-    desktop: usr/share/applications/makemkv.desktop
     plugs:
       - gsettings
       - hardware-observe
@@ -40,29 +39,33 @@ apps:
       - removable-media         
 
 parts:
-  makemkv-oss:
-    source: https://www.makemkv.com/download/makemkv-oss-1.18.2.tar.gz
-    source-type: tar
+  makemkv-bin:
     plugin: nil
-    override-build: |
+    source: https://www.makemkv.com/download/makemkv-bin-1.18.2.tar.gz
+    override-build: |      
+      mkdir -p INSTALL
+      cd INSTALL/
+      
+      # oss
+      wget https://www.makemkv.com/download/makemkv-oss-1.18.2.tar.gz
+            
+      tar -xvzf makemkv-oss-1.18.2.tar.gz
       ls -al
       cd makemkv-oss-1.18.2/
+      ls -al
       ./configure
       make
       make install
       
-    build-packages:
-      - build-essential 
-      - pkg-config
-      - libc6-dev 
-      - libssl-dev 
-      - libexpat1-dev 
-      - libavcodec-dev 
-      - libgl1-mesa-dev 
-      - qtbase5-dev 
-      - zlib1g-dev
-      - curl
-
+      # bin
+      wget https://www.makemkv.com/download/makemkv-bin-1.18.2.tar.gz
+      
+      tar -xvzf makemkv-bin-1.18.2.tar.gz
+      cd makemkv-bin-1.18.2/
+      mkdir tmp && touch tmp/eula_accepted
+      make
+      make install      
+      
     override-pull: |
       VERSION="$(curl --silent --show-error --location \
         'https://www.makemkv.com/forum/viewtopic.php?f=3&t=224' \
@@ -71,26 +74,7 @@ parts:
           's|^.*\"https?://www.makemkv.com/download/makemkv-bin-([0-9]+\.[0-9]+\.[0-9]+)\.tar\.gz\".*|\1|')"
       echo "Setting snap version to '$VERSION'"
       craftctl set version="$VERSION"
-      echo "$VERSION" > "$SNAPCRAFT_PROJECT_DIR/version"
-
-    stage-packages:
-      - libegl1-mesa-dev
-      - libexpat1
-      - libglx-mesa0
-      - libgles2-mesa-dev
-      - ffmpeg
-      - libavutil-dev
-      
-  makemkv-bin:
-    after: [makemkv-oss]
-    plugin: nil
-    source: https://www.makemkv.com/download/makemkv-bin-1.18.2.tar.gz
-    source-type: tar 
-    override-build:
-      cd makemkv-bin-1.18.2/
-      ./configure
-      make
-      make install
+      echo "$VERSION" > "$SNAPCRAFT_PROJECT_DIR/version"      
            
     build-packages:
       - build-essential 
@@ -102,6 +86,7 @@ parts:
       - libgl1-mesa-dev 
       - qtbase5-dev 
       - zlib1g-dev
+      - wget
  
     stage-packages:
       - libavutil-dev
