@@ -64,7 +64,10 @@ parts:
       cd makemkv-bin-1.18.2/
       mkdir tmp && touch tmp/eula_accepted
       make
-      make install      
+      make install 
+           
+      ls -al $PWD
+      ls -al $CRAFT_PART_INSTALL
       
     override-pull: |
       VERSION="$(curl --silent --show-error --location \
