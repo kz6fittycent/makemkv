@@ -45,24 +45,21 @@ parts:
     source-type: tar
     plugin: nil
     override-build: |
-      ls -al
+      ./configure
+      make
+      make install
       
     build-packages:
-      - curl
-      - libcurl4-openssl-dev
-      - libexpat1-dev
-      - libgl1-mesa-dev
-      - libegl1-mesa-dev
-      - libssl-dev
-      - libc6-dev
-      - libavcodec-dev
-      - qtbase5-dev
-      - tar
-      - zlib1g-dev
-      - libglx-mesa0
-      - ffmpeg
-      - libavutil-dev
+      - build-essential 
       - pkg-config
+      - libc6-dev 
+      - libssl-dev 
+      - libexpat1-dev 
+      - libavcodec-dev 
+      - libgl1-mesa-dev 
+      - qtbase5-dev 
+      - zlib1g-dev
+      - curl
 
     override-pull: |
       VERSION="$(curl --silent --show-error --location \
@@ -75,7 +72,6 @@ parts:
       echo "$VERSION" > "$SNAPCRAFT_PROJECT_DIR/version"
 
     stage-packages:
-      - libcurl4
       - libegl1-mesa-dev
       - libexpat1
       - libglx-mesa0
@@ -89,18 +85,22 @@ parts:
     source: https://www.makemkv.com/download/makemkv-bin-1.18.2.tar.gz
     source-type: tar 
     override-build:
-      ls -al
+      ./configure
+      make
+      make install
            
     build-packages:
-      - execstack
-      - ffmpeg
-      - libavutil-dev
+      - build-essential 
       - pkg-config
+      - libc6-dev 
+      - libssl-dev 
+      - libexpat1-dev 
+      - libavcodec-dev 
+      - libgl1-mesa-dev 
+      - qtbase5-dev 
+      - zlib1g-dev
  
     stage-packages:
-      - libedit2
-      - libjpeg-turbo8
-      - libtinfo6
       - libavutil-dev
       - ffmpeg
       - libavcodec-dev                      
