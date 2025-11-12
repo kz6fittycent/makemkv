@@ -45,6 +45,7 @@ parts:
     source-type: tar
     plugin: nil
     override-build: |
+      cd makemkv-oss-1.18.2/
       ./configure
       make
       make install
@@ -85,6 +86,7 @@ parts:
     source: https://www.makemkv.com/download/makemkv-bin-1.18.2.tar.gz
     source-type: tar 
     override-build:
+      cd makemkv-bin-1.18.2/
       ./configure
       make
       make install
