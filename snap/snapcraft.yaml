@@ -16,7 +16,7 @@ platforms:
     
 apps:
   makemkv:
-    command: makemkv
+    command: usr/bin/makemkv
     extensions:
       - kde-neon
     plugs:
@@ -30,7 +30,7 @@ apps:
       - desktop
   
   makemkvcon:
-    command: makemkvcon 
+    command: usr/bin/makemkvcon 
     plugs:
       - hardware-observe
       - home
@@ -48,7 +48,7 @@ parts:
       wget https://www.makemkv.com/download/makemkv-oss-1.18.2.tar.gz
       tar -xvzf makemkv-oss-1.18.2.tar.gz
       cd makemkv-oss-1.18.2/
-      ./configure --prefix=$CRAFT_PART_INSTALL/
+      ./configure
       make
       make install
       
@@ -60,8 +60,10 @@ parts:
       make
       make install 
       
-      # quick check
-      ls -al $CRAFT_PART_INSTALL/usr/bin
+      # Force move to usr/bin      
+      mkdir -p $CRAFT_PART_INSTALL/usr/bin
+      cp -v /usr/bin/makemkv $CRAFT_PART_INSTALL/usr/bin/ || echo "makemkv not found in /usr/bin"
+      cp -v /usr/bin/makemkvcon $CRAFT_PART_INSTALL/usr/bin/ || echo "makemkvcon not found"
       
     override-pull: |
       VERSION="$(curl --silent --show-error --location \
