@@ -65,7 +65,9 @@ parts:
       cp -v /usr/bin/makemkv $CRAFT_PART_INSTALL/usr/bin/ || echo "makemkv not found in /usr/bin"
       cp -v /usr/bin/makemkvcon $CRAFT_PART_INSTALL/usr/bin/ || echo "makemkvcon not found"
       
+      
     override-pull: |
+    
       VERSION="$(curl --silent --show-error --location \
         'https://www.makemkv.com/forum/viewtopic.php?f=3&t=224' \
         | grep -E 'https?://www.makemkv.com/download/makemkv-bin-[0-9]+\.[0-9]+\.[0-9]+\.tar\.gz' \
@@ -86,8 +88,7 @@ parts:
       - qtbase5-dev 
       - zlib1g-dev
       - wget
+      - curl
  
     stage-packages:
-      - libavutil-dev
-      - ffmpeg
-      - libavcodec-dev                      
+      - ffmpeg                 
